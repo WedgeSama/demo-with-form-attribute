@@ -1,0 +1,4 @@
+[submodule "symfony-form-attribute"]
+	path = symfony-form-attribute
+	url = git@github.com:WedgeSama/symfony-form-attribute.git
+	branch = form-attribute

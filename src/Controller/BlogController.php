@@ -15,7 +15,6 @@ use App\Entity\Comment;
 use App\Entity\Post;
 use App\Entity\User;
 use App\Event\CommentCreatedEvent;
-use App\Form\CommentType;
 use App\Repository\PostRepository;
 use App\Repository\TagRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -116,7 +115,7 @@ final class BlogController extends AbstractController
         $comment->setAuthor($user);
         $post->addComment($comment);
 
-        $form = $this->createForm(CommentType::class, $comment);
+        $form = $this->createForm(Comment::class, $comment);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -150,7 +149,7 @@ final class BlogController extends AbstractController
      */
     public function commentForm(Post $post): Response
     {
-        $form = $this->createForm(CommentType::class);
+        $form = $this->createForm(Comment::class);
 
         return $this->render('blog/_comment_form.html.twig', [
             'post' => $post,

@@ -11,12 +11,20 @@
 
 namespace App\Entity;
 
+use App\Form\Type\DateTimePickerType;
+use App\Form\Type\TagsInputType;
 use App\Repository\PostRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Form\Attribute\AsFormType;
+use Symfony\Component\Form\Attribute\Type;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -34,6 +42,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: PostRepository::class)]
 #[ORM\Table(name: 'symfony_demo_post')]
 #[UniqueEntity(fields: ['slug'], errorPath: 'title', message: 'post.slug_unique')]
+#[AsFormType]
+// When #[ApplyFormEvent] + Autowire/DI.
+//#[ApplyFormEvent(FormEvents::SUBMIT, 'onSubmit')]
 class Post
 {
     #[ORM\Id]
@@ -43,6 +54,10 @@ class Post
 
     #[ORM\Column(type: Types::STRING)]
     #[Assert\NotBlank]
+    #[Type(options: [
+        'attr' => ['autofocus' => true],
+        'label' => 'label.title',
+    ])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::STRING)]
@@ -51,14 +66,27 @@ class Post
     #[ORM\Column(type: Types::STRING)]
     #[Assert\NotBlank(message: 'post.blank_summary')]
     #[Assert\Length(max: 255)]
+    #[Type(TextareaType::class, [
+        'help' => 'help.post_summary',
+        'label' => 'label.summary',
+    ])]
     private ?string $summary = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: 'post.blank_content')]
     #[Assert\Length(min: 10, minMessage: 'post.too_short_content')]
+    #[Type(options: [
+        'attr' => ['rows' => 20],
+        'help' => 'help.post_content',
+        'label' => 'label.content',
+    ])]
     private ?string $content = null;
 
     #[ORM\Column]
+    #[Type(DateTimePickerType::class, [
+        'label' => 'label.published_at',
+        'help' => 'help.post_publication',
+    ])]
     private \DateTimeImmutable $publishedAt;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -79,6 +107,10 @@ class Post
     #[ORM\JoinTable(name: 'symfony_demo_post_tag')]
     #[ORM\OrderBy(['name' => 'ASC'])]
     #[Assert\Count(max: 4, maxMessage: 'post.too_many_tags')]
+    #[Type(TagsInputType::class, [
+        'label' => 'label.tags',
+        'required' => false,
+    ])]
     private Collection $tags;
 
     public function __construct()
@@ -196,4 +228,14 @@ class Post
     {
         return $this->tags;
     }
+
+//    // When #[ApplyFormEvent] + Autowire/DI.
+//    public static function onSubmit(FormEvent $event, SluggerInterface $slugger): void
+//    {
+//        /** @var self $post */
+//        $post = $event->getData();
+//        if (null === $post->getSlug() && null !== $post->getTitle()) {
+//            $post->setSlug($slugger->slug($post->getTitle())->lower());
+//        }
+//    }
 }

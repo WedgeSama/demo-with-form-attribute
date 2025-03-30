@@ -16,7 +16,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Defines the properties of the User entity to represent the application users.
@@ -44,16 +43,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING)]
-    #[Assert\NotBlank]
     private ?string $fullName = null;
 
     #[ORM\Column(type: Types::STRING, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 2, max: 50)]
     private ?string $username = null;
 
     #[ORM\Column(type: Types::STRING, unique: true)]
-    #[Assert\Email]
     private ?string $email = null;
 
     #[ORM\Column(type: Types::STRING)]
