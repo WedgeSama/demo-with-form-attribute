@@ -13,7 +13,6 @@ namespace App\Controller\Admin;
 
 use App\Entity\Post;
 use App\Entity\User;
-use App\Form\PostType;
 use App\Repository\PostRepository;
 use App\Security\PostVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,6 +25,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 /**
  * Controller used to manage blog contents in the backend.
@@ -76,12 +76,13 @@ final class BlogController extends AbstractController
         #[CurrentUser] User $user,
         Request $request,
         EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
     ): Response {
         $post = new Post();
         $post->setAuthor($user);
 
         // See https://symfony.com/doc/current/form/multiple_buttons.html
-        $form = $this->createForm(PostType::class, $post)
+        $form = $this->createForm(Post::class, $post)
             ->add('saveAndCreateNew', SubmitType::class)
         ;
 
@@ -92,6 +93,10 @@ final class BlogController extends AbstractController
         // See https://symfony.com/doc/current/forms.html#processing-forms
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($post);
+
+            // Will be put back in FormEvent with #[ApplyFormEvent] + Autowire/DI.
+            $post->setSlug($slugger->slug($post->getTitle())->lower());
+
             $entityManager->flush();
 
             // Flash messages are used to notify the user about the result of the
@@ -138,7 +143,7 @@ final class BlogController extends AbstractController
     #[IsGranted('edit', subject: 'post', message: 'Posts can only be edited by their authors.')]
     public function edit(Request $request, Post $post, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(PostType::class, $post);
+        $form = $this->createForm(Post::class, $post);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

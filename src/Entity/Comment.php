@@ -13,6 +13,9 @@ namespace App\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Form\Attribute\AsFormType;
+use Symfony\Component\Form\Attribute\Type;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Validator\Constraints as Assert;
 use function Symfony\Component\String\u;
 
@@ -28,6 +31,7 @@ use function Symfony\Component\String\u;
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'symfony_demo_comment')]
+#[AsFormType]
 class Comment
 {
     #[ORM\Id]
@@ -42,6 +46,9 @@ class Comment
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: 'comment.blank')]
     #[Assert\Length(min: 5, minMessage: 'comment.too_short', max: 10000, maxMessage: 'comment.too_long')]
+    #[Type(TextareaType::class, [
+        'help' => 'help.comment_content',
+    ])]
     private ?string $content = null;
 
     #[ORM\Column]

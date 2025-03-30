@@ -11,9 +11,9 @@
 
 namespace App\Controller;
 
+use App\DTO\UserChangePasswordDTO;
+use App\DTO\UserProfileDTO;
 use App\Entity\User;
-use App\Form\ChangePasswordType;
-use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -40,10 +40,12 @@ final class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
     ): Response {
-        $form = $this->createForm(UserType::class, $user);
+        $userDTO = UserProfileDTO::fromEntity($user);
+        $form = $this->createForm(UserProfileDTO::class, $userDTO);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $userDTO->populateEntity($user);
             $entityManager->flush();
 
             $this->addFlash('success', 'user.updated_successfully');
@@ -64,10 +66,13 @@ final class UserController extends AbstractController
         EntityManagerInterface $entityManager,
         Security $security,
     ): Response {
-        $form = $this->createForm(ChangePasswordType::class, $user);
+        $userDTO = new UserChangePasswordDTO();
+
+        $form = $this->createForm(UserChangePasswordDTO::class, $userDTO);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $userDTO->populateEntity($user);
             $entityManager->flush();
 
             // The logout method applies an automatic protection against CSRF attacks;
